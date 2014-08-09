@@ -7,23 +7,27 @@
 #define NUMBER_OF_ATOMS 112
 #define LENGTH_ATOM_NAME_MAX 3
 
-struct atom {
+struct atom
+{
     char name[LENGTH_ATOM_NAME_MAX+1];
     double molar_mass;
 };
 
+double get_molar_mass_atom(const struct atom list_of_atoms[], size_t length_of_list, char *atom);
+int extract_formula(double *coefficient, char **formula, const char *chemical_formula, size_t length_of_chemical);
+double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list, const char *buffer, size_t length_of_buffer);
+
 /*
-params :
-    a) list_of_atoms is a table of struct atom which contains the atoms you want to check
-    b) length_of_list contains the size of list-of_atoms (there are 133 atoms in the Periodic table,
-                                                          but you can choose to selct a few of those)
-    c) atom is a string which contains the chemical name of the atom
-return :
-    a) -1 if atom was not found in list_of_atoms
-    b) the molar mass written in list_of_atoms of atom
+in :
+    - list_of_atoms is a table of struct atom which contains the atoms you want to check
+    - length_of_list contains the size of list-of_atoms (there are 133 atoms in the Periodic table, but you can choose to selct a few of those)
+    - atom is a string which contains the chemical name of the atom
+out :
+    - -1 if atom was not found in list_of_atoms
+    - the molar mass written in list_of_atoms of atom
 */
-double get_molar_mass_atom(const struct atom list_of_atoms[], size_t length_of_list,
-                           char *atom) {
+double get_molar_mass_atom(const struct atom list_of_atoms[], size_t length_of_list, char *atom)
+{
     size_t i;
     for(i = 0; i < length_of_list; ++i)
         if(strcmp(atom, list_of_atoms[i].name) == 0)
@@ -32,22 +36,23 @@ double get_molar_mass_atom(const struct atom list_of_atoms[], size_t length_of_l
 }
 
 /*
-params :
-    a) coefficient is a pointer on the coefficient value (pointer because the function changes its value)
-    b) formule is a double-pointer on char because it is allocated in that function (then the value of the pointer changes)
-    c) chemical_formula is the buffer which contains the formula nd the coefficient
-    d) length_of_chemical is the size of the buffer
-return :
-    a) -1 if allocation failed
-    b) 0 if allocation successed
+in :
+    - coefficient is a pointer on the coefficient value (pointer because the function changes its value)
+    - formula is a double-pointer on char because it is allocated in that function (then the value of the pointer changes)
+    - chemical_formula is the buffer which contains the formula nd the coefficient
+    - length_of_chemical is the size of the buffer
+out :
+    - -1 if allocation failed
+    - 0 if allocation successed
 */
-int extract_formula(double *coefficient, char **formula,
-                     const char *chemical_formula, size_t length_of_chemical) {
+int extract_formula(double *coefficient, char **formula, const char *chemical_formula, size_t length_of_chemical)
+{
     char *tmp;
     int i = 0;
     while(isalpha(chemical_formula[i]) == 0 && chemical_formula[i] != '(')
         ++i;
-    if(i != 0) {
+    if(i != 0)
+    {
         *coefficient = strtod(chemical_formula, &tmp);
         if(*coefficient == 0)
             *coefficient = 1;
@@ -57,7 +62,9 @@ int extract_formula(double *coefficient, char **formula,
         if(*formula == NULL)
             return -1;
         strcpy(*formula, tmp);
-    } else {
+    }
+    else
+    {
         *formula = malloc(length_of_chemical+1);
         if(*formula == NULL)
             return -1;
@@ -68,20 +75,19 @@ int extract_formula(double *coefficient, char **formula,
 }
 
 /*
-params :
-    a) list_of_atoms is a table of struct atom which contains the atoms you want to check
-    b) length_of_list contains the size of list-of_atoms (there are 133 atoms in the Periodic table,
-                                                          but you can choose to selct a few of those)
-    c) buffer is a string which contains the formula of the molecule you want get the molar mass of
-    d) length_of_buffer contains the size of the buffer (useful to treat the brackets '()')
-return :
-    a) -1.0 if there has been an allocation problem,
-    b) -2.0 if an atom is unknown (or doesn't exist)
-    c) -1500.0 if there is a non-alphanum and non-brace char.
-    d) the molar mass (precision .01) of the molecule if no error has been found
+in :
+    - list_of_atoms is a table of struct atom which contains the atoms you want to check
+    - length_of_list contains the size of list-of_atoms (there are 133 atoms in the Periodic table, but you can choose to selct a few of those)
+    - buffer is a string which contains the formula of the molecule you want get the molar mass of
+    - length_of_buffer contains the size of the buffer (useful to treat the brackets '()')
+out :
+    - -1.0 if there has been an allocation problem,
+    - -2.0 if an atom is unknown (or doesn't exist)
+    - -1500.0 if there is a non-alphanum and non-brace char.
+    - the molar mass (precision .01) of the molecule if no error has been found
 */
-double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list,
-                      const char *buffer, size_t length_of_buffer) {
+double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list, const char *buffer, size_t length_of_buffer)
+{
     double ret = 0.;
     char *tmp = NULL;
     char *stat_buf = NULL;
@@ -98,20 +104,28 @@ double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list,
 
     tmp = malloc(LENGTH_ATOM_NAME_MAX+1);
     tmp[LENGTH_ATOM_NAME_MAX] = '\0';
-    for(i = strlen(stat_buf)-1; i >= 0; --i) {
-        if(isdigit(stat_buf[i]) != 0) {
+    for(i = strlen(stat_buf)-1; i >= 0; --i)
+    {
+        if(isdigit(stat_buf[i]) != 0)
+        {
             tmp_coef += (stat_buf[i] - '0') * pow_10;
             pow_10 *= 10;
-        } else if(isalpha(stat_buf[i]) != 0) {
-            if(tmp_index < 0) {
+        }
+        else if(isalpha(stat_buf[i]) != 0)
+        {
+            if(tmp_index < 0)
+            {
                 free(tmp);
                 free(stat_buf);
                 return -2.0;
-            } else {
+            }
+            else
+            {
                 tmp[tmp_index--] = stat_buf[i];
                 if(isupper(tmp[tmp_index+1])) {
                     tmp_molar_mass = get_molar_mass_atom(list_of_atoms, length_of_list, tmp+tmp_index+1);
-                    if(tmp_molar_mass < DBL_EPSILON) {
+                    if(tmp_molar_mass < DBL_EPSILON)
+                    {
                         free(tmp);
                         free(stat_buf);
                         return -2.0;
@@ -124,7 +138,9 @@ double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list,
                     tmp_index = 2;
                 }
             }
-        } else if(stat_buf[i] == ')') {
+        }
+        else if(stat_buf[i] == ')')
+        {
             j = i-1;
             while(stat_buf[j] != '(')
                 --j;
@@ -133,7 +149,9 @@ double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list,
             tmp_coef = 0;
             pow_10 = 1;
             tmp_index = 2;
-        } else {
+        }
+        else
+        {
             ret = -1500.;
             break;
         }
@@ -141,11 +159,12 @@ double get_molar_mass(const struct atom list_of_atoms[], size_t length_of_list,
     free(tmp);
     free(stat_buf);
     return coefficient*ret;
-    (void)list_of_atoms;
 }
 
-int main(void) {
-    struct atom list_of_atoms[NUMBER_OF_ATOMS] = {
+int main(void)
+{
+    struct atom list_of_atoms[NUMBER_OF_ATOMS] =
+    {
         {"H", 	1.01}, 	 {"He", 4.00}, 	 {"Li", 6.94}, 		{"Be",  9.01},
         {"B", 	10.81},  {"C", 	12.01},  {"N", 	14.01}, 	{"O",   16.00},
         {"F", 	19.00},  {"Ne", 20.18},  {"Na", 22.99}, 	{"Mg",  24.31},
@@ -175,17 +194,11 @@ int main(void) {
         {"Db", 	262.00}, {"Sg", 263.00}, {"Bh", 264.00}, 	{"Hs",  265.00},
         {"Mt", 	266.00}, {"Ds", 281.00}, {"Uuu", 272.00},	{"Uub", 285.00}
     };
+
     int i;
-    char *buffer[6] = {
-        "(C21H25ClN2O3)6", "CO", "C2O",
-        "C6H6", "(CH3)2CO", "CO(CH2OH)2"
-    };
-    double tests[6] = {
-        2333.58, 28.01, 40.02, 78.11, 58.08, 90.08
-    };
-    for(i = 0; i < 6; ++i) {
-        printf("%s --> %.10g\t\t(verif : %.10g)\n",
-               buffer[i], get_molar_mass(list_of_atoms, NUMBER_OF_ATOMS, buffer[i], strlen(buffer[i])), tests[i]);
-    }
+    const char *buffer[6] = { "(C21H25ClN2O3)6", "CO", "C2O", "C6H6", "(CH3)2CO", "CO(CH2OH)2"};
+    double tests[6] = { 2333.58, 28.01, 40.02, 78.11, 58.08, 90.08};
+    for(i = 0; i < 6; ++i)
+        printf("%s --> %.10g\t\t(verif : %.10g)\n", buffer[i], get_molar_mass(list_of_atoms, NUMBER_OF_ATOMS, buffer[i], strlen(buffer[i])), tests[i]);
     return EXIT_SUCCESS;
 }
